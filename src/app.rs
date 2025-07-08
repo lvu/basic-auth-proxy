@@ -17,9 +17,9 @@ pub struct App {
 impl App {
     pub async fn new(config: &crate::Config) -> Self {
         let oidc_client = oidc::OidcClient::new(
-            &config.oidc_issuer,
-            &config.oidc_client_id,
-            &config.oidc_client_secret,
+            &config.issuer,
+            &config.client_id,
+            &config.client_secret,
             config.groups_claim.clone(),
             config.additional_scopes.clone(),
         )
@@ -47,7 +47,8 @@ impl App {
             Ok(value) => value.user_info.clone(),
             Err(g) => {
                 println!("Authorizing user: {:?}", credentials.username);
-                let result: Result<oidc::OidcUserInfo, err::ProxyError> = self.oidc_client
+                let result: Result<oidc::OidcUserInfo, err::ProxyError> = self
+                    .oidc_client
                     .get_user_info(&credentials.username, &credentials.password)
                     .await
                     .map_err(|e| e.into());
@@ -77,12 +78,15 @@ impl App {
                     response = response.header("X-Auth-Request-Email", email);
                 }
                 if let Some(preferred_username) = &user_info.preferred_username {
-                    response = response.header("X-Auth-Request-Preferred-Username", preferred_username);
+                    response =
+                        response.header("X-Auth-Request-Preferred-Username", preferred_username);
                 }
                 if !user_info.groups.is_empty() {
                     response = response.header("X-Auth-Request-Groups", user_info.groups.join(","));
                 }
-                Ok(response.body(Empty::new()).map_err(|e| err::ProxyError::from_source(e.into(), StatusCode::INTERNAL_SERVER_ERROR))?)
+                Ok(response.body(Empty::new()).map_err(|e| {
+                    err::ProxyError::from_source(e.into(), StatusCode::INTERNAL_SERVER_ERROR)
+                })?)
             }
         }
     }

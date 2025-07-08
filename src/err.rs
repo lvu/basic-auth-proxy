@@ -7,11 +7,9 @@ pub struct ProxyError {
 }
 
 impl ProxyError {
+    #[cfg(test)]
     pub fn new(message: String, status: hyper::StatusCode) -> Self {
-        Self {
-            message,
-            status,
-        }
+        Self { message, status }
     }
 
     pub fn from_source(source: Box<dyn Error>, status: hyper::StatusCode) -> Self {

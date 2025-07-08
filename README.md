@@ -48,12 +48,12 @@ Caddy can then use these headers for additional authorization logic.
 
 ## Environment Variables
 
-- `LISTEN_ADDR` - Address to listen on (default: "0.0.0.0:8080")
-- `OIDC_ISSUER` - OpenID Connect issuer URL (required)
-- `OIDC_CLIENT_ID` - OpenID Connect client ID (required)
-- `OIDC_CLIENT_SECRET` - OpenID Connect client secret (required)
-- `GROUPS_CLAIM` - Name of the claim containing user groups (optional)
-- `ADDITIONAL_SCOPES` - Additional scopes to request, comma-separated (optional, defaults to empty list)
+- `BA_PROXY_LISTEN_ADDR` - Address to listen on (default: "0.0.0.0:8080")
+- `BA_PROXY_ISSUER` - OpenID Connect issuer URL (required)
+- `BA_PROXY_CLIENT_ID` - OpenID Connect client ID (required)
+- `BA_PROXY_CLIENT_SECRET` - OpenID Connect client secret (required)
+- `BA_PROXY_GROUPS_CLAIM` - Name of the claim containing user groups (optional)
+- `BA_PROXY_ADDITIONAL_SCOPES` - Additional scopes to request, comma-separated (optional, defaults to empty list)
 
 ## Example Usage
 
@@ -66,9 +66,9 @@ services:
     ports:
       - "8080:8080"
     environment:
-      - OIDC_ISSUER=https://your-oidc-provider.com
-      - OIDC_CLIENT_ID=your-client-id
-      - OIDC_CLIENT_SECRET=your-client-secret
+      - BA_PROXY_ISSUER=https://your-oidc-provider.com
+      - BA_PROXY_CLIENT_ID=your-client-id
+      - BA_PROXY_CLIENT_SECRET=your-client-secret
 ```
 
 ### With groups claim and additional scopes
@@ -80,11 +80,11 @@ services:
     ports:
       - "8080:8080"
     environment:
-      - OIDC_ISSUER=https://your-oidc-provider.com
-      - OIDC_CLIENT_ID=your-client-id
-      - OIDC_CLIENT_SECRET=your-client-secret
-      - GROUPS_CLAIM=groups
-      - ADDITIONAL_SCOPES=offline_access,read:users
+      - BA_PROXY_ISSUER=https://your-oidc-provider.com
+      - BA_PROXY_CLIENT_ID=your-client-id
+      - BA_PROXY_CLIENT_SECRET=your-client-secret
+      - BA_PROXY_GROUPS_CLAIM=groups
+      - BA_PROXY_ADDITIONAL_SCOPES=offline_access,read:users
 ```
 
 ## How it works
@@ -110,11 +110,11 @@ The proxy will request the following scopes by default:
 - `email`
 - `profile`
 
-Additional scopes can be specified via the `ADDITIONAL_SCOPES` environment variable as a comma-separated list.
+Additional scopes can be specified via the `BA_PROXY_ADDITIONAL_SCOPES` environment variable as a comma-separated list.
 
 ## Groups Claim
 
-If `GROUPS_CLAIM` is set, the proxy will extract user groups from the specified claim in the ID token or user info response. The groups will be included in the `X-Auth-Request-Groups` header.
+If `BA_PROXY_GROUPS_CLAIM` is set, the proxy will extract user groups from the specified claim in the ID token or user info response. The groups will be included in the `X-Auth-Request-Groups` header.
 
 ## Development
 

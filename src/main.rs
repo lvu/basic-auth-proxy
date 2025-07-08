@@ -14,9 +14,9 @@ mod oidc;
 struct Config {
     #[serde(default = "default_listen_addr")]
     listen_addr: String,
-    oidc_issuer: String,
-    oidc_client_id: String,
-    oidc_client_secret: String,
+    issuer: String,
+    client_id: String,
+    client_secret: String,
     groups_claim: Option<String>,
     #[serde(default = "Vec::new")]
     additional_scopes: Vec<String>,
@@ -40,7 +40,7 @@ fn default_cache_max_size() -> usize {
 
 #[tokio::main]
 async fn main() {
-    let config = envy::from_env::<Config>().unwrap();
+    let config = envy::prefixed("BA_PROXY_").from_env::<Config>().unwrap();
     let app = Arc::new(app::App::new(&config).await);
     let listener = TcpListener::bind(&config.listen_addr).await.unwrap();
     println!("Listening on {}", &config.listen_addr);

@@ -50,7 +50,12 @@ impl OidcClient {
             ClientId::new(client_id.to_string()),
             Some(ClientSecret::new(client_secret.to_string())),
         );
-        Ok(Self { client, http_client, groups_claim, additional_scopes })
+        Ok(Self {
+            client,
+            http_client,
+            groups_claim,
+            additional_scopes,
+        })
     }
 
     pub async fn get_user_info(
@@ -61,16 +66,18 @@ impl OidcClient {
         let username = ResourceOwnerUsername::new(username.to_string());
         let password = ResourceOwnerPassword::new(password.to_string());
 
-        let mut password_req = self.client
+        let mut password_req = self
+            .client
             .exchange_password(&username, &password)?
             .add_scope(Scope::new("openid".to_string()))
             .add_scope(Scope::new("email".to_string()))
             .add_scope(Scope::new("profile".to_string()));
-        password_req = self.additional_scopes.iter().fold(
-            password_req, |req, scope| {
+        password_req = self
+            .additional_scopes
+            .iter()
+            .fold(password_req, |req, scope| {
                 req.add_scope(Scope::new(scope.to_string()))
-            }
-        );
+            });
 
         let resp = password_req
             .request_async(&self.http_client)
@@ -94,9 +101,9 @@ impl OidcClient {
         self.parse_user_info_claims(&resp)
     }
 
-
     fn parse_id_token_claims(
-        &self, claims: &IdTokenClaims<DynamicAdditionalClaims, core::CoreGenderClaim>,
+        &self,
+        claims: &IdTokenClaims<DynamicAdditionalClaims, core::CoreGenderClaim>,
     ) -> Result<Option<OidcUserInfo>, Box<dyn error::Error>> {
         let mut groups: Vec<String> = Vec::new();
         if let Some(groups_claim_name) = &self.groups_claim {
@@ -118,11 +125,20 @@ impl OidcClient {
     }
 
     fn parse_user_info_claims(
-        &self, claims: &UserInfoClaims<DynamicAdditionalClaims, core::CoreGenderClaim>,
+        &self,
+        claims: &UserInfoClaims<DynamicAdditionalClaims, core::CoreGenderClaim>,
     ) -> Result<OidcUserInfo, Box<dyn error::Error>> {
-        let groups: Vec<String> = self.groups_claim.as_ref().and_then(|gn| {
-            claims.additional_claims().0.get(gn).map(|g| serde_json::from_value(g.clone()))
-        }).unwrap_or(Ok(Vec::new()))?;
+        let groups: Vec<String> = self
+            .groups_claim
+            .as_ref()
+            .and_then(|gn| {
+                claims
+                    .additional_claims()
+                    .0
+                    .get(gn)
+                    .map(|g| serde_json::from_value(g.clone()))
+            })
+            .unwrap_or(Ok(Vec::new()))?;
         Ok(OidcUserInfo {
             id: claims.subject().to_string(),
             email: claims.email().map(|e| e.to_string()),
