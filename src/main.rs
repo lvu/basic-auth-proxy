@@ -20,10 +20,22 @@ struct Config {
     groups_claim: Option<String>,
     #[serde(default = "Vec::new")]
     additional_scopes: Vec<String>,
+    #[serde(default = "default_cache_ttl_seconds")]
+    cache_ttl_seconds: u64,
+    #[serde(default = "default_cache_max_size")]
+    cache_max_size: usize,
 }
 
 fn default_listen_addr() -> String {
     "0.0.0.0:8080".to_string()
+}
+
+fn default_cache_ttl_seconds() -> u64 {
+    60
+}
+
+fn default_cache_max_size() -> usize {
+    1000
 }
 
 #[tokio::main]

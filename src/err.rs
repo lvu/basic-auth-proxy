@@ -1,10 +1,9 @@
 use std::error::Error;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct ProxyError {
     message: String,
     status: hyper::StatusCode,
-    source: Option<Box<dyn Error + 'static>>,
 }
 
 impl ProxyError {
@@ -12,7 +11,6 @@ impl ProxyError {
         Self {
             message,
             status,
-            source: None,
         }
     }
 
@@ -20,7 +18,6 @@ impl ProxyError {
         Self {
             message: source.to_string(),
             status,
-            source: Some(source),
         }
     }
 
@@ -29,11 +26,7 @@ impl ProxyError {
     }
 }
 
-impl Error for ProxyError {
-    fn source(&self) -> Option<&(dyn Error + 'static)> {
-        self.source.as_ref().map(|e| e.as_ref())
-    }
-}
+impl Error for ProxyError {}
 
 impl std::fmt::Display for ProxyError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {

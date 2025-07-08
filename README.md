@@ -1,6 +1,50 @@
 # Basic Auth Proxy
 
-A proxy server that validates Basic Authentication credentials against an OpenID Connect provider and returns user information in response headers.
+A proxy server that validates Basic Authentication credentials against an OpenID Connect provider and returns user information in response headers. This proxy is specifically designed for use with **Caddy's forward auth proxy**, especially for its [**WebDAV** module](https://github.com/mholt/caddy-webdav). Other reverse proxies
+(Nginx, Traefik) would probably work as well.
+
+## Why This Proxy?
+
+### WebDAV Authentication Challenges
+
+WebDAV clients typically only support Basic Authentication, but many modern applications use OAuth2/OpenID Connect for authentication. This creates a gap where:
+
+1. **WebDAV clients** (like macOS Finder, Windows Explorer, mobile apps) can only send Basic Auth credentials
+2. **Modern applications** use OAuth2/OpenID Connect tokens
+3. **Caddy's forward proxy** needs to validate these Basic Auth credentials against an OIDC provider
+
+### The Solution
+
+This proxy bridges that gap by:
+1. Receiving Basic Authentication requests from WebDAV clients
+2. Validating the username/password against your OpenID Connect provider
+3. Returning user information in headers that Caddy can use for authorization decisions
+4. Enabling seamless WebDAV access with modern authentication
+
+Is is inspired by and is meant to complement [OAuth2 Proxy](https://oauth2-proxy.github.io/).
+
+### Use Case: Caddy Forward Auth + WebDAV
+
+```yaml
+# Caddy configuration example
+webdav.example.com {
+        webdav {
+                root /srv/
+        }
+
+        forward_auth * basic-auth-proxy:8080 {
+                copy_headers Authorization
+                uri /
+        }
+}
+```
+
+The proxy validates credentials and returns headers like:
+- `X-Auth-Request-User` - User ID
+- `X-Auth-Request-Email` - User's email
+- `X-Auth-Request-Groups` - User's groups
+
+Caddy can then use these headers for additional authorization logic.
 
 ## Environment Variables
 
@@ -45,7 +89,7 @@ services:
 
 ## How it works
 
-1. The proxy receives Basic Authentication requests
+1. The proxy receives Basic Authentication requests from WebDAV clients
 2. It validates the username/password against the OpenID Connect provider using the Resource Owner Password flow
 3. If authentication succeeds, it returns a 200 OK response with user information in headers
 4. If authentication fails, it returns a 401 Unauthorized response

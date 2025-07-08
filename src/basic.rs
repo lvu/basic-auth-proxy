@@ -3,7 +3,7 @@ use hyper::header::HeaderMap;
 use std::error;
 use std::io;
 
-#[derive(Debug)]
+#[derive(Debug, Hash, Eq, PartialEq, Clone)]
 pub struct Credentials {
     pub username: String,
     pub password: String,
