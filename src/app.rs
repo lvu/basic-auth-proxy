@@ -69,7 +69,15 @@ impl App {
         let credentials = basic::parse_basic_auth(req.headers())
             .map_err(|e| err::ProxyError::from_source(e, StatusCode::UNAUTHORIZED))?;
         match &*self.get_user_info(&credentials).await {
-            Err(e) => Err(e.clone()),
+            Err(e) => if e.status() == StatusCode::UNAUTHORIZED {
+                Ok(Response::builder()
+                    .status(StatusCode::UNAUTHORIZED)
+                    .header("WWW-Authenticate", "Basic")
+                    .body(Empty::new())
+                    .map_err(|e| err::ProxyError::from_source(e.into(), StatusCode::INTERNAL_SERVER_ERROR))?)
+            } else {
+                Err(e.clone())
+            },
             Ok(user_info) => {
                 let mut response = Response::builder()
                     .status(StatusCode::OK)
